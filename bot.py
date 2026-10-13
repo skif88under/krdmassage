@@ -256,24 +256,8 @@ async def main():
             f"🔗 Telegram: {username}\n"
             f"🆔 Telegram ID: <code>{user_id}</code>"
         )
-try:
-    sent = await bot.send_message(admin_id, request_text)
-    logging.info(
-        "Заявка отправлена: chat_id=%s, message_id=%s",
-        sent.chat.id,
-        sent.message_id,
-    )
-except Exception:
-    logging.exception(
-        "ОШИБКА ОТПРАВКИ ЗАЯВКИ: ADMIN_ID=%s",
-        admin_id,
-    )
-    await message.answer(
-        "Не удалось отправить заявку. Попробуйте позже.",
-        reply_markup=main_menu(),
-    )
-    await state.clear()
-    return
+        try:
+            await bot.send_message(admin_id, request_text)
         except Exception:
             logging.exception("Не удалось отправить заявку администратору")
             await message.answer(
