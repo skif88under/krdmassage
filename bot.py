@@ -109,6 +109,20 @@ async def main():
             return
         await message.answer("Выберите услугу, чтобы посмотреть описание и цены:", reply_markup=service_keyboard(services))
 
+    @dp.callback_query(Booking.service, F.data.startswith("service:"))
+    async def booking_choose_service(callback: CallbackQuery, state: FSMContext):
+        service_id = callback.data.split(":", 1)[1]
+        services = load_json("massages.json").get("services", [])
+        service = next((s for s in services if s["id"] == service_id and s.get("active", True)), None)
+        if not service:
+            await callback.answer("Услуга не найдена.", show_alert=True)
+            return
+        await state.update_data(service_id=service_id, service_name=service["name"])
+        await state.set_state(Booking.name)
+        await callback.message.answer("Как вас зовут?", reply_markup=back_keyboard())
+        await callback.answer()
+
+
     @dp.callback_query(F.data.startswith("service:"))
     async def service_detail(callback: CallbackQuery):
         service_id = callback.data.split(":", 1)[1]
@@ -198,19 +212,6 @@ async def main():
         await state.set_state(Booking.service)
         await message.answer("Выберите вид массажа:", reply_markup=service_keyboard(services))
 
-    @dp.callback_query(Booking.service, F.data.startswith("service:"))
-    async def booking_choose_service(callback: CallbackQuery, state: FSMContext):
-        service_id = callback.data.split(":", 1)[1]
-        services = load_json("massages.json").get("services", [])
-        service = next((s for s in services if s["id"] == service_id and s.get("active", True)), None)
-        if not service:
-            await callback.answer("Услуга не найдена.", show_alert=True)
-            return
-        await state.update_data(service_id=service_id, service_name=service["name"])
-        await state.set_state(Booking.name)
-        await callback.message.answer("Как вас зовут?", reply_markup=back_keyboard())
-        await callback.answer()
-
     @dp.message(Booking.name, F.text)
     async def booking_name(message: Message, state: FSMContext):
         name = message.text.strip()
@@ -271,7 +272,14 @@ async def main():
     async def fallback(message: Message):
         await message.answer("Пожалуйста, выберите раздел в меню или отправьте /start.", reply_markup=main_menu())
 
+
+    @dp.errors()
+    async def errors_handler(event):
+        logging.exception("Ошибка при обработке обновления: %s", event.exception)
+        return True
+
     logging.basicConfig(level=logging.INFO)
+    logging.info("Бот запущен. Ожидание сообщений...")
     await dp.start_polling(bot)
 
 
