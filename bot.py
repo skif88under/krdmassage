@@ -10,6 +10,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+
 from aiogram.types import (
     Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton,
     InlineKeyboardMarkup, InlineKeyboardButton
@@ -33,6 +34,7 @@ def load_json(filename: str):
 def main_menu() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
+            [KeyboardButton(text="🌿 Польза массажа")],
             [KeyboardButton(text="💆 Виды массажа"), KeyboardButton(text="🎁 Сертификаты")],
             [KeyboardButton(text="📝 Оставить заявку"), KeyboardButton(text="📍 Адрес и график")],
             [KeyboardButton(text="❓ Частые вопросы"), KeyboardButton(text="📢 Наш канал")],
@@ -194,6 +196,25 @@ async def main():
             await callback.answer("Вопрос не найден.", show_alert=True)
             return
         await callback.answer()
+
+    @dp.message(F.text == "🌿 Польза массажа")
+    async def massage_benefits(message: Message):
+        text = (
+            "<b>🌿 Польза массажа</b>\n\n"
+            "Массаж — это возможность уделить время себе, расслабиться и почувствовать лёгкость в теле.\n\n"
+            "✨ <b>Что может дать массаж:</b>\n\n"
+            "🧘 <b>Снятие стресса</b> — помогает расслабиться и отдохнуть.\n"
+            "💆 <b>Снижение мышечного напряжения</b> — способствует расслаблению уставших мышц.\n"
+            "❤️ <b>Местное кровообращение</b> — массаж стимулирует кровоток в массируемых тканях.\n"
+            "🌿 <b>Поддержка лимфооттока</b> — некоторые техники помогают движению лимфы.\n"
+            "🤲 <b>Облегчение мышечного дискомфорта</b> — может уменьшать ощущение скованности и болезненности.\n"
+            "😌 <b>Расслабление и спокойствие</b> — может способствовать снижению ощущения тревоги.\n"
+            "🌙 <b>Отдых и сон</b> — расслабление после массажа может помочь лучше отдохнуть.\n"
+            "💚 <b>Забота о себе</b> — возможность уделить внимание своему телу и самочувствию.\n\n"
+            "Выберите подходящий массаж и оставьте заявку — мастер свяжется с вами. 💚\n\n"
+            "<i>Эффект зависит от человека и вида массажа. Массаж не заменяет медицинскую диагностику и лечение.</i>"
+        )
+        await message.answer(text, reply_markup=main_menu())
 
     @dp.message(F.text == "📢 Наш канал")
     async def channel(message: Message):
