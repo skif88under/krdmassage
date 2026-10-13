@@ -1,0 +1,22 @@
+{
+  "services": [
+    {
+      "id": "relax",
+      "name": "Расслабляющий массаж",
+      "description": "Добавьте описание услуги в этом файле.",
+      "duration_minutes": 60,
+      "session_price": 2500,
+      "course_price": 12000,
+      "active": true
+    },
+    {
+      "id": "back",
+      "name": "Массаж спины",
+      "description": "Добавьте описание услуги в этом файле.",
+      "duration_minutes": 30,
+      "session_price": 1500,
+      "course_price": 7000,
+      "active": true
+    }
+  ]
+}
