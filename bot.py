@@ -256,7 +256,7 @@ async def main():
             f"🔗 Telegram: {username}\n"
             f"🆔 Telegram ID: <code>{user_id}</code>"
         )
-            try:
+try:
     sent = await bot.send_message(admin_id, request_text)
     logging.info(
         "Заявка отправлена: chat_id=%s, message_id=%s",
