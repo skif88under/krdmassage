@@ -16,7 +16,7 @@
       "duration_minutes": 25,
       "session_price": 2000,
       "course_price": 0,
-      "active": false
+      "active": true
     },
     {
       "id": "massazh-po-avtorskoj-metodike",
