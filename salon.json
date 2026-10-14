@@ -1,8 +1,8 @@
 {
   "name": "Массажный салон",
-  "address": "Укажите адрес салона",
-  "working_hours": "Укажите дни и часы работы",
+  "address": "",
+  "working_hours": "По записи",
   "map_url": "",
   "phone": "",
-  "channel_url": "https://t.me/your_channel"
+  "channel_url": "https://t.me/krdmassageru"
 }
