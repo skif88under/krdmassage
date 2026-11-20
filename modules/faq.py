@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 from aiogram import Bot, Dispatcher, F
-from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,7 +10,7 @@ MENU_ITEMS = [{"text": "❓ Частые вопросы", "callback_data": "menu
 
 
 async def setup(bot: Bot, dp: Dispatcher):
-    @dp.message(Command("faq"))
+    @dp.message(F.text == "❓ Частые вопросы")
     async def faq_list(message: Message):
         with (BASE_DIR / "faqs.json").open("r", encoding="utf-8") as file:
             faqs = json.load(file).get("faqs", [])
