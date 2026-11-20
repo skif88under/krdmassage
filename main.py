@@ -27,6 +27,7 @@ def build_menu(menu_items):
     return ReplyKeyboardMarkup(
         keyboard=rows,
         resize_keyboard=True,
+        is_persistent=True,
         one_time_keyboard=False,
         input_field_placeholder="Выберите раздел"
     )
