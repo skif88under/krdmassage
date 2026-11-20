@@ -67,11 +67,10 @@ async def main():
                     await message.answer_photo(
                         photo=FSInputFile(image_path),
                         caption=welcome_text,
-                        reply_markup=menu
                     )
                     return
                 logging.warning("Приветственное изображение не найдено: %s", image_path)
-            await message.answer(welcome_text, reply_markup=menu)
+            await message.answer(welcome_text)
 
         logging.info("Массажный бот запущен")
         await dp.start_polling(bot)
