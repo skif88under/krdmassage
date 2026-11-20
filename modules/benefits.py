@@ -1,13 +1,15 @@
-from aiogram import Bot, Dispatcher
-from aiogram.types import Message
+from aiogram import Bot, Dispatcher, F
+from aiogram.types import Message, CallbackQuery
 
 order = 60
 MENU_ITEMS = [{"text": "🌿 Польза массажа", "callback_data": "menu:benefits"}]
 
 
 async def setup(bot: Bot, dp: Dispatcher):
-    @dp.message(F.text == "🌿 Польза массажа")
-    async def massage_benefits(message: Message):
+    @dp.callback_query(F.data == "menu:benefits")
+    async def massage_benefits(callback: CallbackQuery):
+        message = callback.message
+        await callback.answer()
         text = (
             "<b>🌿 Польза массажа</b>\n\n"
             "Массаж — это возможность уделить время себе, расслабиться и почувствовать лёгкость в теле.\n\n"
