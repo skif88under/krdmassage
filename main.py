@@ -3,14 +3,11 @@ import json
 import logging
 from pathlib import Path
 
-from aiogram import Bot, Dispatcher, F
+from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import (
-    Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton,
-    ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
-)
+from aiogram.types import Message, BotCommand, MenuButtonCommands, FSInputFile
 
 from config import BOT_TOKEN
 from core.loader import load_modules
@@ -24,33 +21,26 @@ def load_settings():
         return json.load(file)
 
 
-def build_menu(items):
-    buttons = [KeyboardButton(text=item["text"]) for item in items]
-    rows = [buttons[index:index + 2] for index in range(0, len(buttons), 2)]
-    rows.append([KeyboardButton(text="🙈 Скрыть меню")])
-    return ReplyKeyboardMarkup(
-        keyboard=rows,
-        resize_keyboard=True,
-        is_persistent=True,
-        input_field_placeholder="Выберите раздел меню"
-    ) if rows else None
-
-
-def build_open_menu_button():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📋 Открыть меню", callback_data="menu:open")]
-    ])
-
-
 async def main():
     logging.basicConfig(level=logging.INFO)
     settings = load_settings()
     bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
 
+    commands = [
+        BotCommand(command="services", description="Виды массажа"),
+        BotCommand(command="booking", description="Оставить заявку"),
+        BotCommand(command="certificates", description="Подарочные сертификаты"),
+        BotCommand(command="salon", description="Адрес и график работы"),
+        BotCommand(command="faq", description="Частые вопросы"),
+        BotCommand(command="benefits", description="Польза массажа"),
+        BotCommand(command="channel", description="Наш канал"),
+    ]
+
     try:
-        menu_items = await load_modules(bot, dp)
-        menu = build_menu(menu_items)
+        await load_modules(bot, dp)
+        await bot.set_my_commands(commands)
+        await bot.set_chat_menu_button(menu_button=MenuButtonCommands())
         welcome_text = settings.get("welcome_text", "Здравствуйте! Добро пожаловать.")
 
         @dp.message(CommandStart())
@@ -64,29 +54,11 @@ async def main():
                 if image_path.is_file():
                     await message.answer_photo(
                         photo=FSInputFile(image_path),
-                        caption=welcome_text,
-                        reply_markup=menu
+                        caption=welcome_text
                     )
                     return
                 logging.warning("Приветственное изображение не найдено: %s", image_path)
-            await message.answer(welcome_text, reply_markup=menu)
-
-        @dp.message(F.text == "🙈 Скрыть меню")
-        async def hide_menu(message: Message):
-            await message.answer(
-                "Меню скрыто. Нажмите кнопку ниже, чтобы открыть его снова.",
-                reply_markup=ReplyKeyboardRemove()
-            )
-            await message.answer("Чтобы открыть меню снова:", reply_markup=build_open_menu_button())
-
-        @dp.callback_query(F.data == "menu:open")
-        async def open_menu(callback: CallbackQuery):
-            await callback.message.answer("Меню открыто.", reply_markup=menu)
-            await callback.answer()
-
-        @dp.message(F.text == "/menu")
-        async def show_menu_command(message: Message):
-            await message.answer("Главное меню:", reply_markup=menu)
+            await message.answer(welcome_text)
 
         logging.info("Массажный бот запущен")
         await dp.start_polling(bot)
