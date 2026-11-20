@@ -1,7 +1,8 @@
 import json
 from pathlib import Path
 
-from aiogram import Bot, Dispatcher, F
+from aiogram import Bot, Dispatcher
+from aiogram.filters import Command
 from aiogram.types import Message
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -10,7 +11,7 @@ MENU_ITEMS = [{"text": "📍 Адрес и график", "callback_data": "menu
 
 
 async def setup(bot: Bot, dp: Dispatcher):
-    @dp.message(F.text == "📍 Адрес и график")
+    @dp.message(Command("salon"))
     async def salon_info(message: Message):
         with (BASE_DIR / "salon.json").open("r", encoding="utf-8") as file:
             data = json.load(file)
