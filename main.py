@@ -3,11 +3,14 @@ import json
 import logging
 from pathlib import Path
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, FSInputFile
+from aiogram.types import (
+    Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton,
+    ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
+)
 
 from config import BOT_TOKEN
 from core.loader import load_modules
@@ -22,17 +25,21 @@ def load_settings():
 
 
 def build_menu(items):
-    buttons = [
-        KeyboardButton(text=item["text"])
-        for item in items
-    ]
+    buttons = [KeyboardButton(text=item["text"]) for item in items]
     rows = [buttons[index:index + 2] for index in range(0, len(buttons), 2)]
+    rows.append([KeyboardButton(text="🙈 Скрыть меню")])
     return ReplyKeyboardMarkup(
         keyboard=rows,
         resize_keyboard=True,
         is_persistent=True,
         input_field_placeholder="Выберите раздел меню"
     ) if rows else None
+
+
+def build_open_menu_button():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📋 Открыть меню", callback_data="menu:open")]
+    ])
 
 
 async def main():
@@ -63,6 +70,23 @@ async def main():
                     return
                 logging.warning("Приветственное изображение не найдено: %s", image_path)
             await message.answer(welcome_text, reply_markup=menu)
+
+        @dp.message(F.text == "🙈 Скрыть меню")
+        async def hide_menu(message: Message):
+            await message.answer(
+                "Меню скрыто. Нажмите кнопку ниже, чтобы открыть его снова.",
+                reply_markup=ReplyKeyboardRemove()
+            )
+            await message.answer(" ", reply_markup=build_open_menu_button())
+
+        @dp.callback_query(F.data == "menu:open")
+        async def open_menu(callback: CallbackQuery):
+            await callback.message.answer("Меню открыто.", reply_markup=menu)
+            await callback.answer()
+
+        @dp.message(F.text == "/menu")
+        async def show_menu_command(message: Message):
+            await message.answer("Главное меню:", reply_markup=menu)
 
         logging.info("Массажный бот запущен")
         await dp.start_polling(bot)
