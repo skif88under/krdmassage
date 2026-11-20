@@ -7,7 +7,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import Message, BotCommand, MenuButtonCommands, FSInputFile
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, FSInputFile
 
 from config import BOT_TOKEN
 from core.loader import load_modules
@@ -21,26 +21,26 @@ def load_settings():
         return json.load(file)
 
 
+def build_menu(menu_items):
+    buttons = [KeyboardButton(text=item["text"]) for item in menu_items]
+    rows = [buttons[i:i + 2] for i in range(0, len(buttons), 2)]
+    return ReplyKeyboardMarkup(
+        keyboard=rows,
+        resize_keyboard=True,
+        one_time_keyboard=False,
+        input_field_placeholder="Выберите раздел"
+    )
+
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     settings = load_settings()
     bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
 
-    commands = [
-        BotCommand(command="services", description="Виды массажа"),
-        BotCommand(command="booking", description="Оставить заявку"),
-        BotCommand(command="certificates", description="Подарочные сертификаты"),
-        BotCommand(command="salon", description="Адрес и график работы"),
-        BotCommand(command="faq", description="Частые вопросы"),
-        BotCommand(command="benefits", description="Польза массажа"),
-        BotCommand(command="channel", description="Наш канал"),
-    ]
-
     try:
-        await load_modules(bot, dp)
-        await bot.set_my_commands(commands)
-        await bot.set_chat_menu_button(menu_button=MenuButtonCommands())
+        menu_items = await load_modules(bot, dp)
+        menu = build_menu(menu_items)
         welcome_text = settings.get("welcome_text", "Здравствуйте! Добро пожаловать.")
 
         @dp.message(CommandStart())
@@ -54,11 +54,12 @@ async def main():
                 if image_path.is_file():
                     await message.answer_photo(
                         photo=FSInputFile(image_path),
-                        caption=welcome_text
+                        caption=welcome_text,
+                        reply_markup=menu
                     )
                     return
                 logging.warning("Приветственное изображение не найдено: %s", image_path)
-            await message.answer(welcome_text)
+            await message.answer(welcome_text, reply_markup=menu)
 
         logging.info("Массажный бот запущен")
         await dp.start_polling(bot)
