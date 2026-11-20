@@ -3,11 +3,11 @@ import json
 import logging
 from pathlib import Path
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, FSInputFile
+from aiogram.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
 
 from config import BOT_TOKEN
 from core.loader import load_modules
@@ -27,6 +27,7 @@ def build_menu(items):
         for item in items
     ]
     rows = [buttons[index:index + 2] for index in range(0, len(buttons), 2)]
+    rows.append([KeyboardButton(text="🙈 Скрыть меню")])
     return ReplyKeyboardMarkup(
         keyboard=rows,
         resize_keyboard=True,
@@ -45,6 +46,24 @@ async def main():
         menu_items = await load_modules(bot, dp)
         menu = build_menu(menu_items)
         welcome_text = settings.get("welcome_text", "Здравствуйте! Добро пожаловать.")
+
+        def build_open_menu_button():
+            return InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="📋 Открыть меню", callback_data="menu:open")]
+            ])
+
+        @dp.message(F.text == "🙈 Скрыть меню")
+        async def hide_menu(message: Message):
+            await message.answer(
+                "Меню скрыто. Нажмите кнопку ниже, чтобы открыть его снова.",
+                reply_markup=ReplyKeyboardRemove()
+            )
+            await message.answer(" ", reply_markup=build_open_menu_button())
+
+        @dp.callback_query(F.data == "menu:open")
+        async def open_menu(callback: CallbackQuery):
+            await callback.message.answer("Меню открыто.", reply_markup=menu)
+            await callback.answer()
 
         @dp.message(CommandStart())
         async def start_handler(message: Message):
