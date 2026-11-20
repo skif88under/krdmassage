@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 from aiogram import Bot, Dispatcher, F
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
@@ -25,7 +26,7 @@ def get_services():
 
 
 async def setup(bot: Bot, dp: Dispatcher):
-    @dp.message(F.text == "📝 Оставить заявку")
+    @dp.message(Command("booking"))
     async def booking_start(message: Message):
         services = [item for item in get_services() if item.get("active", True)]
         if not services:
@@ -55,10 +56,10 @@ async def setup(bot: Bot, dp: Dispatcher):
         await callback.message.answer("Как вас зовут? Для отмены отправьте /cancel.")
         await callback.answer()
 
-    @dp.message(F.text == "/cancel")
+    @dp.message(Command("cancel"))
     async def booking_cancel(message: Message, state: FSMContext):
         await state.clear()
-        await message.answer("Заявка отменена. Чтобы открыть меню, отправьте /start.")
+        await message.answer("Заявка отменена. Откройте меню через кнопку слева от строки ввода.")
 
     @dp.message(Booking.name, F.text)
     async def booking_name(message: Message, state: FSMContext):
