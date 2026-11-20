@@ -77,7 +77,7 @@ async def main():
                 "Меню скрыто. Нажмите кнопку ниже, чтобы открыть его снова.",
                 reply_markup=ReplyKeyboardRemove()
             )
-            await message.answer(" ", reply_markup=build_open_menu_button())
+            await message.answer("Чтобы открыть меню снова:", reply_markup=build_open_menu_button())
 
         @dp.callback_query(F.data == "menu:open")
         async def open_menu(callback: CallbackQuery):
