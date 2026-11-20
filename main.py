@@ -7,7 +7,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, FSInputFile
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
+from aiogram.client.session.middlewares.base import BaseRequestMiddleware
 
 from config import BOT_TOKEN
 from core.loader import load_modules
@@ -22,15 +23,24 @@ def load_settings():
 
 
 def build_menu(menu_items):
-    buttons = [KeyboardButton(text=item["text"]) for item in menu_items]
+    buttons = [InlineKeyboardButton(text=item["text"], callback_data=item["callback_data"]) for item in menu_items]
     rows = [buttons[i:i + 2] for i in range(0, len(buttons), 2)]
-    return ReplyKeyboardMarkup(
-        keyboard=rows,
-        resize_keyboard=True,
-        is_persistent=True,
-        one_time_keyboard=False,
-        input_field_placeholder="Выберите раздел"
-    )
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+class MenuKeyboardMiddleware(BaseRequestMiddleware):
+    def __init__(self, menu):
+        self.menu = menu
+
+    async def __call__(self, make_request, bot, method):
+        if getattr(method, "__api_method__", "").startswith("send") and hasattr(method, "reply_markup"):
+            current = getattr(method, "reply_markup", None)
+            rows = []
+            if isinstance(current, InlineKeyboardMarkup):
+                rows.extend([list(row) for row in current.inline_keyboard])
+            rows.extend([list(row) for row in self.menu.inline_keyboard])
+            method.reply_markup = InlineKeyboardMarkup(inline_keyboard=rows)
+        return await make_request(bot, method)
 
 
 async def main():
@@ -42,6 +52,7 @@ async def main():
     try:
         menu_items = await load_modules(bot, dp)
         menu = build_menu(menu_items)
+        bot.session.middleware(MenuKeyboardMiddleware(menu))
         welcome_text = settings.get("welcome_text", "Здравствуйте! Добро пожаловать.")
 
         @dp.message(CommandStart())
