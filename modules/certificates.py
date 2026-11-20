@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from aiogram import Bot, Dispatcher
-from aiogram.types import Message
+from aiogram import Bot, Dispatcher, F
+from aiogram.types import Message, CallbackQuery
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 order = 30
@@ -10,8 +10,10 @@ MENU_ITEMS = [{"text": "🎁 Сертификаты", "callback_data": "menu:cer
 
 
 async def setup(bot: Bot, dp: Dispatcher):
-    @dp.message(F.text == "🎁 Сертификаты")
-    async def certificates(message: Message):
+    @dp.callback_query(F.data == "menu:certificates")
+    async def certificates(callback: CallbackQuery):
+        message = callback.message
+        await callback.answer()
         with (BASE_DIR / "certificates.json").open("r", encoding="utf-8") as file:
             data = json.load(file)
         text = data.get("text", "Информация о подарочных сертификатах скоро появится.")
