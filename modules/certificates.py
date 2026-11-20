@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 from aiogram import Bot, Dispatcher
-from aiogram.filters import Command
 from aiogram.types import Message
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,7 +10,7 @@ MENU_ITEMS = [{"text": "🎁 Сертификаты", "callback_data": "menu:cer
 
 
 async def setup(bot: Bot, dp: Dispatcher):
-    @dp.message(Command("certificates"))
+    @dp.message(F.text == "🎁 Сертификаты")
     async def certificates(message: Message):
         with (BASE_DIR / "certificates.json").open("r", encoding="utf-8") as file:
             data = json.load(file)
