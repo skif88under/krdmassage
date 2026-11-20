@@ -7,7 +7,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, FSInputFile
 
 from config import BOT_TOKEN
 from core.loader import load_modules
@@ -23,11 +23,16 @@ def load_settings():
 
 def build_menu(items):
     buttons = [
-        InlineKeyboardButton(text=item["text"], callback_data=item["callback_data"])
+        KeyboardButton(text=item["text"])
         for item in items
     ]
     rows = [buttons[index:index + 2] for index in range(0, len(buttons), 2)]
-    return InlineKeyboardMarkup(inline_keyboard=rows) if rows else None
+    return ReplyKeyboardMarkup(
+        keyboard=rows,
+        resize_keyboard=True,
+        is_persistent=True,
+        input_field_placeholder="Выберите раздел меню"
+    ) if rows else None
 
 
 async def main():
@@ -43,7 +48,6 @@ async def main():
 
         @dp.message(CommandStart())
         async def start_handler(message: Message):
-            # Уведомление отправляется только при первом запуске этим Telegram-пользователем.
             if message.from_user:
                 await notify_new_user(bot, message.from_user)
 
