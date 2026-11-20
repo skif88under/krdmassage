@@ -11,6 +11,7 @@ from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, F
 
 from config import BOT_TOKEN
 from core.loader import load_modules
+from modules.notifications import notify_new_user
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -42,6 +43,10 @@ async def main():
 
         @dp.message(CommandStart())
         async def start_handler(message: Message):
+            # Уведомление отправляется только при первом запуске этим Telegram-пользователем.
+            if message.from_user:
+                await notify_new_user(bot, message.from_user)
+
             image_name = settings.get("welcome_image")
             if image_name:
                 image_path = BASE_DIR / image_name
