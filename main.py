@@ -7,7 +7,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile, ReplyKeyboardRemove, MenuButtonDefault
 from aiogram.client.session.middlewares.base import BaseRequestMiddleware
 
 from config import BOT_TOKEN
@@ -33,8 +33,10 @@ class MenuKeyboardMiddleware(BaseRequestMiddleware):
         self.menu = menu
 
     async def __call__(self, make_request, bot, method):
-        if getattr(method, "__api_method__", "").startswith("send") and hasattr(method, "reply_markup"):
+        if getattr(method, "__api_method__", "").lower().startswith("send") and hasattr(method, "reply_markup"):
             current = getattr(method, "reply_markup", None)
+            if isinstance(current, ReplyKeyboardRemove):
+                return await make_request(bot, method)
             rows = []
             if isinstance(current, InlineKeyboardMarkup):
                 rows.extend([list(row) for row in current.inline_keyboard])
@@ -53,10 +55,13 @@ async def main():
         menu_items = await load_modules(bot, dp)
         menu = build_menu(menu_items)
         bot.session.middleware(MenuKeyboardMiddleware(menu))
+        await bot.delete_my_commands()
+        await bot.set_chat_menu_button(menu_button=MenuButtonDefault())
         welcome_text = settings.get("welcome_text", "Здравствуйте! Добро пожаловать.")
 
         @dp.message(CommandStart())
         async def start_handler(message: Message):
+            await message.answer("\u200e", reply_markup=ReplyKeyboardRemove())
             if message.from_user:
                 await notify_new_user(bot, message.from_user)
 
