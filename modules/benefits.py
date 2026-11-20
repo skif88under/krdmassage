@@ -1,5 +1,4 @@
 from aiogram import Bot, Dispatcher
-from aiogram.filters import Command
 from aiogram.types import Message
 
 order = 60
@@ -7,7 +6,7 @@ MENU_ITEMS = [{"text": "🌿 Польза массажа", "callback_data": "men
 
 
 async def setup(bot: Bot, dp: Dispatcher):
-    @dp.message(Command("benefits"))
+    @dp.message(F.text == "🌿 Польза массажа")
     async def massage_benefits(message: Message):
         text = (
             "<b>🌿 Польза массажа</b>\n\n"
