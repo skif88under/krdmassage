@@ -5,7 +5,7 @@ from pathlib import Path
 from aiogram import Bot, Dispatcher, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 from config import ADMIN_ID
 
@@ -25,18 +25,17 @@ def get_services():
 
 
 async def setup(bot: Bot, dp: Dispatcher):
-    @dp.callback_query(F.data == "menu:booking")
-    async def booking_start(callback: CallbackQuery):
+    @dp.message(F.text == "📝 Оставить заявку")
+    async def booking_start(message: Message):
         services = [item for item in get_services() if item.get("active", True)]
         if not services:
-            await callback.message.answer("Пока нельзя оставить заявку: список услуг ещё заполняется.")
+            await message.answer("Пока нельзя оставить заявку: список услуг ещё заполняется.")
         else:
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text=item["name"], callback_data=f"book:{item['id']}")]
                 for item in services
             ])
-            await callback.message.answer("Выберите вид массажа:", reply_markup=keyboard)
-        await callback.answer()
+            await message.answer("Выберите вид массажа:", reply_markup=keyboard)
 
     @dp.callback_query(F.data.startswith("book:"))
     async def booking_choose_service(callback: CallbackQuery, state: FSMContext):
