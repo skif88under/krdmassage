@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from aiogram import Bot, Dispatcher, F
+from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,7 +16,7 @@ def get_services():
 
 
 async def setup(bot: Bot, dp: Dispatcher):
-    @dp.message(F.text == "💆 Виды массажа")
+    @dp.message(Command("services"))
     async def services_list(message: Message):
         services = [item for item in get_services() if item.get("active", True)]
         if not services:
