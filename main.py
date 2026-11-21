@@ -24,11 +24,8 @@ def load_settings():
 def build_menu(items):
     buttons = [KeyboardButton(text=item["text"]) for item in items]
 
-    # Первые три кнопки — в одной строке, остальные — по одной.
-    rows = []
-    if buttons:
-        rows.append(buttons[:3])
-        rows.extend([[button] for button in buttons[3:]])
+    # По две кнопки в каждой строке.
+    rows = [buttons[index:index + 2] for index in range(0, len(buttons), 2)]
 
     return ReplyKeyboardMarkup(
         keyboard=rows,
