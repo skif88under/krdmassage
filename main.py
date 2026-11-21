@@ -22,12 +22,15 @@ def load_settings():
 
 
 def build_menu(items):
-    buttons = [
-        KeyboardButton(text=item["text"])
-        for item in items
-    ]
-    rows = [buttons[index:index + 2] for index in range(0, len(buttons), 2)]
-    rows.append([KeyboardButton(text="🙈 Скрыть меню")])
+    buttons = [KeyboardButton(text=item["text"]) for item in items]
+
+    # Первые три кнопки располагаются в одной строке,
+    # остальные — по одной кнопке на всю ширину строки.
+    rows = []
+    if buttons:
+        rows.append(buttons[:3])
+        rows.extend([[button] for button in buttons[3:]])
+
     return ReplyKeyboardMarkup(
         keyboard=rows,
         resize_keyboard=True,
